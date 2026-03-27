@@ -1,0 +1,173 @@
+<!--
+  Price Guard — Marketplace Screenshot Checker
+  The Good Neighbor Guard
+  Built by Christopher Hughes · Sacramento, CA
+  Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)
+  Truth · Safety · We Got Your Back
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Price Guard — We Got Your Back</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-row">
+      <div class="shield">🛡️</div>
+      <h1>PRICE<span>GUARD</span></h1>
+    </div>
+    <p class="tagline">TRUTH · SAFETY · WE GOT YOUR BACK</p>
+    <p class="subtitle">Upload a marketplace screenshot. We'll tell you if the price is legit.</p>
+  </header>
+
+  <!-- PIPELINE -->
+  <div class="pipeline" id="pipeline">
+    <div class="pipe-step active" id="ps-upload">📤 Upload</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="ps-extract">🔍 Extract</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="ps-compare">⚖️ Compare</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="ps-verdict">✅ Verdict</div>
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="card" id="upload-card">
+    <div class="card-label">Upload Listing Screenshot</div>
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*"/>
+      <div class="drop-icon">📸</div>
+      <div class="drop-text">Drop screenshot here or <span class="link-style">click to upload</span></div>
+      <div class="drop-sub">Facebook Marketplace · OfferUp · Craigslist · Any listing</div>
+    </div>
+    <div id="preview-wrap" style="display:none">
+      <img id="preview-img" alt="Listing preview"/>
+      <div class="preview-clear" onclick="clearImage()">✕ Remove</div>
+    </div>
+    <button class="btn-primary" id="btn-analyze" onclick="runAnalysis()" disabled>
+      <span id="btn-text">⚡ Analyze Listing</span>
+      <span id="btn-spinner" class="spinner" style="display:none"></span>
+    </button>
+    <div class="error-box" id="error-box" style="display:none"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" style="display:none">
+
+    <!-- VERDICT BANNER -->
+    <div class="verdict-banner" id="verdict-banner">
+      <div class="verdict-icon" id="verdict-icon"></div>
+      <div class="verdict-body">
+        <div class="verdict-label" id="verdict-label"></div>
+        <div class="verdict-sub" id="verdict-sub"></div>
+      </div>
+      <div class="confidence-badge" id="confidence-badge"></div>
+    </div>
+
+    <!-- PRICE ROW -->
+    <div class="price-row">
+      <div class="price-box">
+        <div class="price-box-label">Listed Price</div>
+        <div class="price-box-value" id="res-listed">—</div>
+      </div>
+      <div class="price-box accent">
+        <div class="price-box-label">Estimated Fair Range</div>
+        <div class="price-box-value" id="res-range">—</div>
+      </div>
+    </div>
+
+    <!-- EXTRACTED INFO -->
+    <div class="card">
+      <div class="card-label">Extracted Listing Data
+        <span class="edit-toggle" onclick="toggleEdit()" id="edit-toggle">✏️ Edit</span>
+      </div>
+
+      <!-- VIEW MODE -->
+      <div id="extracted-view">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Item</div>
+            <div class="info-value" id="view-name">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Category</div>
+            <div class="info-value" id="view-cat">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Condition</div>
+            <div class="info-value" id="view-cond">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Listed Price</div>
+            <div class="info-value" id="view-price">—</div>
+          </div>
+        </div>
+        <div class="info-desc" id="view-desc"></div>
+        <div class="signals-wrap" id="signals-wrap"></div>
+      </div>
+
+      <!-- EDIT MODE -->
+      <div id="extracted-edit" style="display:none">
+        <div class="edit-grid">
+          <div class="field-group">
+            <label>Listed Price ($)</label>
+            <input type="number" id="edit-price" placeholder="e.g. 250" min="0" step="0.01"/>
+          </div>
+          <div class="field-group">
+            <label>Category</label>
+            <select id="edit-cat">
+              <option value="laptop">Laptop</option>
+              <option value="phone">Phone</option>
+              <option value="tv">TV / Monitor</option>
+              <option value="bike">Bike</option>
+              <option value="couch">Couch / Sofa</option>
+              <option value="table">Table / Desk</option>
+              <option value="chair">Chair</option>
+              <option value="dresser">Dresser</option>
+              <option value="appliance">Appliance</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Condition</label>
+            <select id="edit-cond">
+              <option value="excellent">Excellent / Like New</option>
+              <option value="good">Good</option>
+              <option value="fair">Fair</option>
+              <option value="poor">Poor / For Parts</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-secondary" onclick="applyEdits()">↻ Re-run Valuation</button>
+      </div>
+    </div>
+
+    <!-- RISK NOTE -->
+    <div class="risk-note" id="risk-note">
+      <span class="risk-icon" id="risk-icon"></span>
+      <span id="risk-text"></span>
+    </div>
+
+    <!-- RESET -->
+    <button class="btn-ghost" onclick="resetApp()">← Check Another Listing</button>
+
+  </div>
+
+  <footer>
+    Price Guard is a demo tool — Version A. Always do your own due diligence. &nbsp;|&nbsp; The Good Neighbor Guard
+  </footer>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
